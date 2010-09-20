@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+abort "#{$0} user_id user_pin email" if ARGV.size < 3
+
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..'))
+require 'subcheck'
+
+subcheck = Subcheck.new(ARGV[0], ARGV[1])
+subcheck.get_postings
+subcheck.mail_results(ARGV[2]) if subcheck.postings.count > 0
