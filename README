@@ -1,0 +1,6 @@
+subcheck.rb
+
+Usage:
+bundle install
+add to your crontab:
+bundle exec bin/subcheck [user_id] [user_pin] [email_to_notify]
