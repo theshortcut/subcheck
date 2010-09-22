@@ -6,5 +6,7 @@ gem 'mail'
 gem 'i18n'
 
 group :test do
+  gem 'minitest'
   gem 'fakeweb'
+  gem 'rake'
 end

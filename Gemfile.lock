@@ -11,8 +11,10 @@ GEM
     mechanize (1.0.0)
       nokogiri (>= 1.2.1)
     mime-types (1.16)
+    minitest (1.7.1)
     nokogiri (1.4.3.1)
     polyglot (0.3.1)
+    rake (0.8.7)
     treetop (1.4.8)
       polyglot (>= 0.3.1)
 
@@ -24,3 +26,5 @@ DEPENDENCIES
   i18n
   mail
   mechanize
+  minitest
+  rake
