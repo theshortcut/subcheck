@@ -52,10 +52,8 @@ class Subcheck
         post.classification = post_info.next_sibling.search("td[3]/font").first.text.gsub(' ',' ').strip
         post.new            = true
         @cached_postings.each do |cached|
-          puts 'checking duplicate'
           if cached.school == post.school and cached.classification == post.classification and cached.startdate == post.startdate and cached.enddate == post.enddate
              post.new = false
-             puts "#{cached.school} == #{post.school}"
           end
         end
         @postings.push post
