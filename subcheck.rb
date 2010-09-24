@@ -2,20 +2,24 @@
 
 require 'mechanize'
 require 'mail'
+require 'yaml'
 
 class Subcheck
-  attr_reader :user_id, :user_pin, :errors, :postings
+  attr_reader :user_id, :user_pin, :errors, :postings, :cached_postings
 
   def initialize(user_id, user_pin)
     @user_id = user_id
     @user_pin = user_pin
     @errors = []
     @postings = []
+    @cached_postings = []
   end
 
   def get_postings
     @errors   = []
     @postings = []
+    @cached_postings = YAML.load_file(File.join(File.dirname(__FILE__), 'tmp', 'cache.yml'))
+
     a = Mechanize.new
     a.get('https://sub.amphi.com/logOnInitAction.do') do |login_page|
 
@@ -38,11 +42,6 @@ class Subcheck
         @errors.push error.text if error.text.length > 0
       end
 
-      cache_file = File.open(File.join(File.dirname(__FILE__), 'tmp', 'cache.txt'))
-      cache      = cache_file.readlines
-      cache.each do |line|
-        line.gsub('\n', '')
-      end
       postings = results_page.parser.xpath("//td/a/font[@class='heading'][text()='Details']")
       postings.each do |posting|
         post_info = posting.parent.parent.parent
@@ -51,15 +50,19 @@ class Subcheck
         post.enddate        = post_info.next_sibling.search("td[2]/font").first.text.gsub(' ',' ').strip
         post.school         = post_info.search("td[3]/font").first.text.gsub(' ',' ').strip
         post.classification = post_info.next_sibling.search("td[3]/font").first.text.gsub(' ',' ').strip
-        post.new = !cache.include?(post.to_s)
+        post.new            = true
+        @cached_postings.each do |cached|
+          puts 'checking duplicate'
+          if cached.school == post.school and cached.classification == post.classification and cached.startdate == post.startdate and cached.enddate == post.enddate
+             post.new = false
+             puts "#{cached.school} == #{post.school}"
+          end
+        end
         @postings.push post
       end
-
-      cache_file = File.new(File.join(File.dirname(__FILE__), 'tmp', 'cache.txt'), 'w+')
-      @postings.each do |posting|
-        cache_file.puts posting.to_s
-      end
-      cache_file.close
+    end
+    File.open(File.join(File.dirname(__FILE__), 'tmp', 'cache.yml'), 'w' ) do |out|
+      YAML.dump( @postings, out )
     end
   end
 
@@ -75,7 +78,7 @@ class Subcheck
 
     email_body = "<p>New posting(s) found:</p>"
     @postings.each do |posting|
-      email_body << posting.to_html if posting.new
+      email_body << posting.to_html if @posting.new
     end
 
     mail = Mail.new do
@@ -104,5 +107,9 @@ class Posting
 
   def to_html
     "<p>School: #{school}<br/>Class: #{classification}<br/>Start: #{startdate}<br/>End: #{enddate}</p>"
+  end
+
+  def to_yaml_properties
+    ['@startdate', '@enddate', '@school', '@classification']
   end
 end

@@ -64,11 +64,17 @@ describe Subcheck do
     it "should check against cached postings" do
       FakeWeb.register_uri :any,
                            'https://sub.amphi.com/substituteAvailableJobAction.do',
+                           :response => File.join(File.dirname(__FILE__), 'fixtures', 'noresults_page.html')
+      @subcheck.get_postings
+      YAML.load_file(File.join(File.dirname(__FILE__), '..', 'tmp', 'cache.yml')).length.must_equal 0
+      FakeWeb.register_uri :any,
+                           'https://sub.amphi.com/substituteAvailableJobAction.do',
                            :response => File.join(File.dirname(__FILE__), 'fixtures', 'results_page.html')
       @subcheck.get_postings
       @subcheck.postings[0].new.must_equal true
+      YAML.load_file(File.join(File.dirname(__FILE__), '..', 'tmp', 'cache.yml')).length.must_equal 1
       @subcheck.get_postings
-      @subcheck.postings.length.must_equal 1
+      YAML.load_file(File.join(File.dirname(__FILE__), '..', 'tmp', 'cache.yml')).length.must_equal 1
       @subcheck.postings[0].new.must_equal false
     end
   end
