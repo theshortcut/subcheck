@@ -14,6 +14,8 @@ class Subcheck
   end
 
   def get_postings
+    @errors   = []
+    @postings = []
     a = Mechanize.new
     a.get('https://sub.amphi.com/logOnInitAction.do') do |login_page|
 
@@ -36,14 +38,28 @@ class Subcheck
         @errors.push error.text if error.text.length > 0
       end
 
+      cache_file = File.open(File.join(File.dirname(__FILE__), 'tmp', 'cache.txt'))
+      cache      = cache_file.readlines
+      cache.each do |line|
+        line.gsub('\n', '')
+      end
       postings = results_page.parser.xpath("//td/a/font[@class='heading'][text()='Details']")
       postings.each do |posting|
-        post = posting.parent.parent.parent
-        @postings.push({ :start  => post.search("td[2]/font").first.text.gsub(' ',' ').strip,
-                         :school => post.search("td[3]/font").first.text.gsub(' ',' ').strip,
-                         :end    => post.next_sibling.search("td[2]/font").first.text.gsub(' ',' ').strip,
-                         :class  => post.next_sibling.search("td[3]/font").first.text.gsub(' ',' ').strip })
+        post_info = posting.parent.parent.parent
+        post = Posting.new
+        post.startdate      = post_info.search("td[2]/font").first.text.gsub(' ',' ').strip
+        post.enddate        = post_info.next_sibling.search("td[2]/font").first.text.gsub(' ',' ').strip
+        post.school         = post_info.search("td[3]/font").first.text.gsub(' ',' ').strip
+        post.classification = post_info.next_sibling.search("td[3]/font").first.text.gsub(' ',' ').strip
+        post.new = !cache.include?(post.to_s)
+        @postings.push post
       end
+
+      cache_file = File.new(File.join(File.dirname(__FILE__), 'tmp', 'cache.txt'), 'w+')
+      @postings.each do |posting|
+        cache_file.puts posting.to_s
+      end
+      cache_file.close
     end
   end
 
@@ -57,9 +73,9 @@ class Subcheck
                                :enable_starttls_auto => true }
     end
 
-    email_body = "<p>#{@postings.count} new posting(s) found.</p>"
+    email_body = "<p>New posting(s) found:</p>"
     @postings.each do |posting|
-      email_body << "<p>School: #{posting[:school]}<br/>Classification: #{posting[:class]}<br/>Start Date: #{posting[:start]}<br/>End Date: #{posting[:end]}</p>"
+      email_body << posting.to_html if posting.new
     end
 
     mail = Mail.new do
@@ -76,5 +92,17 @@ class Subcheck
     end
 
     mail.deliver
+  end
+end
+
+class Posting
+  attr_accessor :startdate, :enddate, :school, :classification, :new
+
+  def to_s
+    "Start: #{startdate}, End: #{enddate}, School: #{school}, Classification: #{classification}"
+  end
+
+  def to_html
+    "<p>School: #{school}<br/>Class: #{classification}<br/>Start: #{startdate}<br/>End: #{enddate}</p>"
   end
 end
