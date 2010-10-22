@@ -6,4 +6,4 @@ require 'subcheck'
 
 subcheck = Subcheck.new(ARGV[0], ARGV[1])
 subcheck.get_postings
-subcheck.mail_results(ARGV[2]) if subcheck.postings.count > 0
+subcheck.mail_results(ARGV[2]) if subcheck.new_postings.count > 0

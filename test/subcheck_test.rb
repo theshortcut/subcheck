@@ -72,6 +72,7 @@ describe Subcheck do
                            :response => File.join(File.dirname(__FILE__), 'fixtures', 'results_page.html')
       @subcheck.get_postings
       @subcheck.postings[0].new.must_equal true
+      @subcheck.new_postings.count.must_equal 1
       YAML.load_file(File.join(File.dirname(__FILE__), '..', 'tmp', 'cache.yml')).length.must_equal 1
       @subcheck.get_postings
       YAML.load_file(File.join(File.dirname(__FILE__), '..', 'tmp', 'cache.yml')).length.must_equal 1

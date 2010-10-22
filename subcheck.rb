@@ -64,6 +64,14 @@ class Subcheck
     end
   end
 
+  def new_postings
+    new_postings = []
+    @postings.each do |posting|
+      new_postings.push posting if posting.new
+    end
+    new_postings
+  end
+
   def mail_results(email_address)
     Mail.defaults do
       delivery_method :smtp, { :address => 'smtp.gmail.com',
