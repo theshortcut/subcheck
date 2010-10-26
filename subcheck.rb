@@ -83,8 +83,8 @@ class Subcheck
     end
 
     email_body = "<p>New posting(s) found:</p>"
-    @postings.each do |posting|
-      email_body << posting.to_html if @posting.new
+    new_postings.each do |posting|
+      email_body << posting.to_html
     end
 
     mail = Mail.new do

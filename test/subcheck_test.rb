@@ -73,6 +73,7 @@ describe Subcheck do
       @subcheck.get_postings
       @subcheck.postings[0].new.must_equal true
       @subcheck.new_postings.count.must_equal 1
+      @subcheck.mail_results('cferris@gmail.com')
       YAML.load_file(File.join(File.dirname(__FILE__), '..', 'tmp', 'cache.yml')).length.must_equal 1
       @subcheck.get_postings
       YAML.load_file(File.join(File.dirname(__FILE__), '..', 'tmp', 'cache.yml')).length.must_equal 1
